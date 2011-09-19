@@ -1,0 +1,26 @@
+package actions;
+
+message LeftoverAction
+{
+	required string project = 1;
+	required string activity = 2;
+	optional string bug = 3;
+	optional string description = 4;
+	required int32 secondsCount = 5;
+}
+
+message StoredAction
+{
+	required string project = 1;
+	required string activity = 2;
+	optional string bug = 3;
+	optional string description = 4;
+	required uint32 start = 5;
+	required uint32 end = 6;
+}
+
+message All
+{
+	repeated LeftoverAction leftovers = 1;
+	repeated StoredAction stored = 2;
+}
