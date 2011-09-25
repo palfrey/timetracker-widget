@@ -42,7 +42,7 @@ import gobject
 pygtk.require('2.0')
 
 timetracker = "http://localhost:8000/"
-timeModulo = 10
+timeModulo = 60
 
 builder = gtk.Builder()
 builder.add_from_file(join(rootpath,"applet.builder"))
