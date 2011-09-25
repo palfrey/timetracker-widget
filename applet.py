@@ -20,6 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys
+from os.path import exists, dirname, join, expanduser
+from os import mkdir
+
+rootpath = dirname(sys.argv[0])
+ttpath = expanduser("~/.config/timetracker")
+if not exists(ttpath):
+	mkdir(ttpath)
+dbpath = join(ttpath, "actions")
+user = join(ttpath, "user")
 
 import gtk
 import pygtk
@@ -35,6 +44,9 @@ pygtk.require('2.0')
 timetracker = "http://localhost:8000/"
 timeModulo = 10
 
+builder = gtk.Builder()
+builder.add_from_file(join(rootpath,"applet.builder"))
+
 def getData(name):
 	data = urlopen(timetracker+name).read()
 	data = json.loads(data)
@@ -45,31 +57,51 @@ def pickUser():
 	return u"TomP" # FIXME
 
 def setText(applet):
-	global label
+	global button
 	print "text", applet.act
-	print "label", label
-	if applet.act.bug == None:
-		label.set_text("%s: %s"%(applet.act.project, applet.act.description))
+	print "button", button
+	if applet.act.project == "IDLE":
+		button.set_label("<IDLE>")
+	elif applet.act.bug == None:
+		button.set_label("%s: %s"%(applet.act.project, applet.act.description))
 	elif applet.act.description == None:
-		label.set_text("%s: #%s"%(applet.act.project, applet.act.bug))
+		button.set_label("%s: #%s"%(applet.act.project, applet.act.bug))
 	else:
-		label.set_text("%s: #%s: %s"%(applet.act.project, applet.act.bug, applet.act.description))
+		button.set_label("%s: #%s: %s"%(applet.act.project, applet.act.bug, applet.act.description))
 
-def newAction(parent):
-	projects = getData("projects")
-	activities = getData("activities")
+def buildCombo(ident, items, current):
+	cmb = builder.get_object(ident)
+	store = gtk.ListStore(gobject.TYPE_STRING)
+	cmb.set_model(store)
+	cell = gtk.CellRendererText()
+	cmb.clear()
+	cmb.pack_start(cell, True)
+	cmb.add_attribute(cell, 'text', 0)
+	index = 0
+	for i, p in enumerate(items):
+		cmb.append_text(p)
+		if p == current:
+			index = i
+	cmb.set_active(index)
+	return cmb
 
-	dialog = gtk.Dialog('Choose action')
-	hbox = gtk.HBox(dialog)
-	hbox.add(gtk.Label("foo"))
-	dialog.show_all()
-	#res = dialog.run()
-	#print "res", res
-	dialog.hide()
+def getCombo(cmb):
+	return cmb.get_active_text()
 
-	# FIXME
-	newAct = {"project":projects[0], "activity":activities[0], "bug":"1234", "description": "description"}
-	
+def idleAct():
+	return getAct(
+			{
+				"project":"IDLE",
+				"activity":"IDLE",
+				"bug": "",
+				"description": ""
+			})
+
+def getText(ident):
+	ent = builder.get_object(ident)
+	return ent.get_text()
+
+def getAct(newAct):
 	for act in db.leftovers:
 		if act.project == newAct["project"] \
 			and act.activity == newAct["activity"] \
@@ -84,6 +116,26 @@ def newAction(parent):
 		act.description = newAct["description"]
 		act.secondsCount = 0
 		return act
+
+def newAction(applet):
+	projects = getData("projects")
+	activities = getData("activities")
+
+	cmbProject = buildCombo("cmbProject", projects, applet.act.project)
+	cmbActivity = buildCombo("cmbActivity", activities, applet.act.activity)
+	dialog = builder.get_object("dlgChooseAction")
+
+	dialog.show_all()
+	res = dialog.run()
+	dialog.hide()
+
+	if res == 1:
+		newAct = {"project":getCombo(cmbProject), "activity": getCombo(cmbActivity), "bug":getText("entBug"), "description": getText("entDescription")}
+		return getAct(newAct)
+	elif res == 3:
+		return idleAct()
+	else:
+		return applet.act
 
 def another_second(applet):
 	global db
@@ -123,22 +175,27 @@ def another_second(applet):
 	return True
 
 def saveDb():
-	open("actions","wb").write(db.SerializeToString())
+	open(dbpath,"wb").write(db.SerializeToString())
+
+def setNewAction(button, applet):
+	applet.act = newAction(applet)
+	setText(applet)
 
 def applet_factory(applet, iid):
-	global db, label
+	global db, button
 
 	db = All()
 	try:
-		db.ParseFromString(open("actions").read())
+		db.ParseFromString(open(dbpath).read())
 	except IOError, e:
 		print e
 		pass
-	label = gtk.Label("It works!")
-	applet.add(label)
+	button = gtk.Button("It works!")
+	button.connect("clicked", setNewAction, applet)
+	applet.add(button)
 	applet.show_all()
 	pickUser()
-	applet.act = newAction(applet)
+	applet.act = idleAct()
 	setText(applet)
 	saveDb()
 
@@ -159,7 +216,7 @@ if __name__ == '__main__':   # testing for execution
       gtk.main()
       sys.exit()
    else:
-      gnomeapplet.bonobo_factory('OAFIID:SampleApplet_Factory', 
+      gnomeapplet.bonobo_factory('OAFIID:TimetrackerApplet_Factory', 
                                  gnomeapplet.Applet.__gtype__, 
-                                 'Sample applet', '0.1', 
+                                 'Timetrakcer', '0.1', 
                                  applet_factory)
