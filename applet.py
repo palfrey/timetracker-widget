@@ -194,7 +194,7 @@ def applet_factory(applet, iid):
 	button.connect("clicked", setNewAction, applet)
 	applet.add(button)
 	applet.show_all()
-	pickUser()
+	#pickUser()
 	applet.act = idleAct()
 	setText(applet)
 	saveDb()
