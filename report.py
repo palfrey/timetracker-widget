@@ -42,7 +42,7 @@ for s in sorted(db.stored, key=lambda s:s.start):
 	if start.tm_mday!=day or start.tm_mon!=month:
 		continue
 	end = localtime(s.end)
-	print "%02d:%02d:%02d -"%(start.tm_hour,start.tm_min,start.tm_sec), 
-	print "%02d:%02d:%02d"%(end.tm_hour,end.tm_min,end.tm_sec), 
-	print s.project, s.activity, s.bug, s.description
+	print "%02d:%02d -"%(start.tm_hour,start.tm_min), 
+	print "%02d:%02d"%(end.tm_hour,end.tm_min), 
+	print s.project,"-",s.activity,"-", s.bug,"-", s.description
 
