@@ -58,16 +58,18 @@ def pickUser():
 
 def setText(applet):
 	global button
-	print "text", applet.act
-	print "button", button
+	print "action", applet.act
 	if applet.act.project == "IDLE":
 		button.set_label("<IDLE>")
-	elif applet.act.bug == None:
+	elif applet.act.bug != "":
+		if applet.act.description != "":
+			button.set_label("%s: #%s: %s"%(applet.act.project, applet.act.bug, applet.act.description))
+		else:
+			button.set_label("%s: #%s"%(applet.act.project, applet.act.bug))
+	elif applet.act.description != "":
 		button.set_label("%s: %s"%(applet.act.project, applet.act.description))
-	elif applet.act.description == None:
-		button.set_label("%s: #%s"%(applet.act.project, applet.act.bug))
 	else:
-		button.set_label("%s: #%s: %s"%(applet.act.project, applet.act.bug, applet.act.description))
+		button.set_label("%s: %s"%(applet.act.project, applet.act.activity))
 
 def buildCombo(ident, items, current):
 	cmb = builder.get_object(ident)
