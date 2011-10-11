@@ -153,10 +153,9 @@ def another_second(applet):
 		end = int(mktime(now))
 		match = ("project", "activity", "bug", "description")
 		for store in db.stored:
-			for field in match:
-				if getattr(store, field) != getattr(applet.act, field):
-					break
-			else:
+			if store.project == applet.act.project and store.activity == applet.act.activity and \
+				store.bug == applet.act.bug and \
+				(store.description == applet.act.description or store.bug != ""):
 				if store.end == start:
 					store.end = end
 					break
