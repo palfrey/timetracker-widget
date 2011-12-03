@@ -39,10 +39,9 @@ from actions_pb2 import All, LeftoverAction, StoredAction
 from time import mktime, localtime
 import gobject
 
-pygtk.require('2.0')
+from settings import *
 
-timetracker = "http://localhost:8000/"
-timeModulo = 60
+pygtk.require('2.0')
 
 builder = gtk.Builder()
 builder.add_from_file(join(rootpath,"applet.builder"))
