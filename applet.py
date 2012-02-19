@@ -30,20 +30,16 @@ if not exists(ttpath):
 dbpath = join(ttpath, "actions")
 user = join(ttpath, "user")
 
-import gtk
-import pygtk
-import gnomeapplet
+from gi.repository import Gtk, GObject
+from gi.repository import PanelApplet
 import json
 from urllib import urlopen
 from actions_pb2 import All, LeftoverAction, StoredAction
 from time import mktime, localtime
-import gobject
 
 from settings import *
 
-pygtk.require('2.0')
-
-builder = gtk.Builder()
+builder = Gtk.Builder()
 builder.add_from_file(join(rootpath,"applet.builder"))
 
 def getData(name):
@@ -72,9 +68,10 @@ def setText(applet):
 
 def buildCombo(ident, items, current):
 	cmb = builder.get_object(ident)
-	store = gtk.ListStore(gobject.TYPE_STRING)
+	cmb.set_property("entry-text-column", 0) # workaround for #612396 (see comment #50)
+	store = Gtk.ListStore(GObject.TYPE_STRING)
 	cmb.set_model(store)
-	cell = gtk.CellRendererText()
+	cell = Gtk.CellRendererText()
 	cmb.clear()
 	cmb.pack_start(cell, True)
 	cmb.add_attribute(cell, 'text', 0)
@@ -181,7 +178,7 @@ def setNewAction(button, applet):
 	applet.act = newAction(applet)
 	setText(applet)
 
-def applet_factory(applet, iid):
+def applet_factory(applet, iid, data = None):
 	global db, button
 
 	db = All()
@@ -190,7 +187,7 @@ def applet_factory(applet, iid):
 	except IOError, e:
 		print e
 		pass
-	button = gtk.Button("It works!")
+	button = Gtk.Button("It works!")
 	button.connect("clicked", setNewAction, applet)
 	applet.add(button)
 	applet.show_all()
@@ -199,24 +196,19 @@ def applet_factory(applet, iid):
 	setText(applet)
 	saveDb()
 
-	gobject.timeout_add(1000, another_second, applet)
+	GObject.timeout_add(1000, another_second, applet)
 	return True
-            
-if __name__ == '__main__':   # testing for execution
-   print('Starting factory')
+				
+if __name__ == '__main__':	# testing for execution
+	print('Starting factory')
 
-   if len(sys.argv) > 1 and sys.argv[1] == '-d': # debugging
-      mainWindow = gtk.Window()
-      mainWindow.set_title('Applet window')
-      mainWindow.connect('destroy', gtk.main_quit)
-      applet = gnomeapplet.Applet()
-      applet_factory(applet, None)
-      applet.reparent(mainWindow)
-      mainWindow.show_all()
-      gtk.main()
-      sys.exit()
-   else:
-      gnomeapplet.bonobo_factory('OAFIID:TimetrackerApplet_Factory', 
-                                 gnomeapplet.Applet.__gtype__, 
-                                 'Timetrakcer', '0.1', 
-                                 applet_factory)
+	if len(sys.argv) > 1 and sys.argv[1] == '-d': # debugging
+		mainWindow = Gtk.Window()
+		mainWindow.set_title('Applet window')
+		mainWindow.connect('destroy', Gtk.main_quit)
+		applet_factory(mainWindow, None)
+		mainWindow.show_all()
+		Gtk.main()
+		sys.exit()
+	else:
+		PanelApplet.Applet.factory_main("TimetrackerWidgetFactory", PanelApplet.Applet.__gtype__, applet_factory, None)

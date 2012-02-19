@@ -31,7 +31,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkComboBox" id="cmbProject">
+                  <object class="GtkComboBoxText" id="cmbProject">
                     <property name="height_request">30</property>
                     <property name="visible">True</property>
                   </object>
@@ -61,7 +61,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkComboBox" id="cmbActivity">
+                  <object class="GtkComboBoxText" id="cmbActivity">
                     <property name="height_request">30</property>
                     <property name="visible">True</property>
                   </object>
