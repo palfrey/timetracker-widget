@@ -1,0 +1,6 @@
+ * items with same bug number are identical, regardless of description
+ - grouped time (multiple positive-time items with same project or same project/type but different other stuff)
+ - filled in items post-idle should be last previous item
+ - list previous N items
+ * If no bug/description listed, show type
+ * Make backup of db
